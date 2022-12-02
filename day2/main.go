@@ -8,25 +8,23 @@ import (
 )
 
 type Shape int
+type Result rune
 
 const (
 	Rock Shape = iota + 1
 	Paper
 	Scissors
 
-	Loss    = 0
-	Draw    = 3
-	Victory = 6
+	Loss    Result = 'X'
+	Draw    Result = 'Y'
+	Victory Result = 'Z'
 )
 
 var (
-	all = map[rune]Shape{
+	shapes = map[rune]Shape{
 		'A': Rock,
 		'B': Paper,
 		'C': Scissors,
-		'X': Rock,
-		'Y': Paper,
-		'Z': Scissors,
 	}
 )
 
@@ -35,15 +33,15 @@ type Player struct {
 }
 
 func (p *Player) Wins(shape Shape) {
-	p.Score += int(shape) + Victory
+	p.Score += int(shape) + 6
 }
 
 func (p *Player) Draws(shape Shape) {
-	p.Score += int(shape) + Draw
+	p.Score += int(shape) + 3
 }
 
 func (p *Player) Loses(shape Shape) {
-	p.Score += int(shape) + Loss
+	p.Score += int(shape) + 0
 }
 
 type Board struct {
@@ -52,31 +50,30 @@ type Board struct {
 }
 
 func (b *Board) NextRound(input string) {
-	l, ok := all[rune(input[0])]
+	opponentMove, ok := shapes[rune(input[0])]
 	if !ok {
 		log.Fatalf("unknown symbol: %c", input[0])
 	}
-	r, ok := all[rune(input[2])]
-	if !ok {
-		log.Fatalf("unknown symbol: %c", input[2])
-	}
+	expectedResult := Result(input[2])
 
 	switch {
-	case l == Rock && r == Scissors:
-		b.Opponent.Wins(l)
-		b.Player.Loses(r)
-	case l == Scissors && r == Rock:
-		b.Opponent.Loses(l)
-		b.Player.Wins(r)
-	case l > r:
-		b.Opponent.Wins(l)
-		b.Player.Loses(r)
-	case l < r:
-		b.Opponent.Loses(l)
-		b.Player.Wins(r)
-	default:
-		b.Opponent.Draws(l)
-		b.Player.Draws(r)
+	case expectedResult == Draw:
+		b.Opponent.Draws(opponentMove)
+		b.Player.Draws(opponentMove)
+	case expectedResult == Victory:
+		playerMove := opponentMove + 1
+		if playerMove > Scissors {
+			playerMove = Rock
+		}
+		b.Opponent.Loses(opponentMove)
+		b.Player.Wins(playerMove)
+	case expectedResult == Loss:
+		playerMove := opponentMove - 1
+		if playerMove < Rock {
+			playerMove = Scissors
+		}
+		b.Opponent.Wins(opponentMove)
+		b.Player.Loses(playerMove)
 	}
 }
 
