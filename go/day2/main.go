@@ -80,7 +80,7 @@ func (b *Board) NextRound(input string) {
 func main() {
 	var board Board
 
-	f, err := os.Open("day2/input")
+	f, err := os.Open("../data/day2")
 	if err != nil {
 		panic(err)
 	}
