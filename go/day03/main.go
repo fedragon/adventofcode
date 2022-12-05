@@ -29,7 +29,7 @@ func (c Container) Intersect(other Container) Container {
 }
 
 func main() {
-	f, err := os.Open("../data/day3")
+	f, err := os.Open("../data/day03")
 	if err != nil {
 		panic(err)
 	}

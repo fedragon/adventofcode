@@ -30,7 +30,7 @@ func main() {
 	var current Elf
 	var elves Elves
 
-	f, err := os.Open("../data/day1")
+	f, err := os.Open("../data/day01")
 	if err != nil {
 		panic(err)
 	}

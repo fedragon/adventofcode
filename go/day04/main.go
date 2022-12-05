@@ -44,7 +44,7 @@ func (r *Range) FullyContains(a *Range) bool {
 }
 
 func main() {
-	f, err := os.Open("../data/day4")
+	f, err := os.Open("../data/day04")
 	if err != nil {
 		panic(err)
 	}
