@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/fedragon/adventofcode/day05/shared"
 )
 
 func main() {
@@ -22,9 +20,9 @@ func main() {
 	scanner.Split(bufio.ScanLines)
 
 	allStacksParsed := false
-	crane := shared.Crane{
-		Stacks: make(map[int]*shared.Stack),
-		Moves:  make([]shared.Move, 0),
+	crane9000 := Crane{
+		Stacks: make(map[int]*Stack),
+		Moves:  make([]Move, 0),
 	}
 
 	for scanner.Scan() {
@@ -40,28 +38,38 @@ func main() {
 		}
 
 		if !allStacksParsed {
-			parseStackLine(&crane, line)
+			parseStackLine(&crane9000, line)
 		} else {
 			move, err := parseMoveLine(line)
 			if err != nil {
 				panic(err)
 			}
 
-			crane.AddMove(move)
+			crane9000.AddMove(move)
 		}
 	}
-	crane.Finalize()
+	crane9000.Finalize()
 
-	crane.PrintStacks()
-	if err := crane.ExecutePlan(&shared.CrateMover9001{}); err != nil {
+	crane9001 := crane9000.Copy()
+
+	crane9000.PrintStacks()
+	if err := crane9000.ExecutePlan(&CrateMover9000{}); err != nil {
 		panic(err)
 	}
-	crane.PrintStacks()
+	crane9000.PrintStacks()
 
-	fmt.Printf("top crates: %v\n\n", crane.TopCrates())
+	fmt.Printf("[CrateMover9000] Top crates: %v\n\n", crane9000.TopCrates())
+
+	crane9001.PrintStacks()
+	if err := crane9001.ExecutePlan(&CrateMover9001{}); err != nil {
+		panic(err)
+	}
+	crane9001.PrintStacks()
+
+	fmt.Printf("[CrateMover9001] Top crates: %v\n\n", crane9001.TopCrates())
 }
 
-func parseStackLine(mover *shared.Crane, line string) {
+func parseStackLine(mover *Crane, line string) {
 	nextCrate := ""
 	stackNumber := 1
 
@@ -85,26 +93,26 @@ func parseStackLine(mover *shared.Crane, line string) {
 
 var moveRegex = regexp.MustCompile(`move (?P<amount>\d+) from (?P<from>\d+) to (?P<to>\d+)`)
 
-func parseMoveLine(line string) (shared.Move, error) {
+func parseMoveLine(line string) (Move, error) {
 	matches := moveRegex.FindStringSubmatch(line)
 	if matches == nil {
-		return shared.Move{}, fmt.Errorf("no matches in %s", line)
+		return Move{}, fmt.Errorf("no matches in %s", line)
 	}
 
 	amount, err := strconv.Atoi(matches[moveRegex.SubexpIndex("amount")])
 	if err != nil {
-		return shared.Move{}, err
+		return Move{}, err
 	}
 
 	from, err := strconv.Atoi(matches[moveRegex.SubexpIndex("from")])
 	if err != nil {
-		return shared.Move{}, err
+		return Move{}, err
 	}
 
 	to, err := strconv.Atoi(matches[moveRegex.SubexpIndex("to")])
 	if err != nil {
-		return shared.Move{}, err
+		return Move{}, err
 	}
 
-	return shared.Move{Count: amount, From: from, To: to}, nil
+	return Move{Count: amount, From: from, To: to}, nil
 }

@@ -1,4 +1,4 @@
-package shared
+package main
 
 import (
 	"fmt"
@@ -67,6 +67,20 @@ func (c *Crane) PrintStacks() {
 		fmt.Println(k, ":", v)
 	}
 	fmt.Println("")
+}
+
+func (c *Crane) Copy() *Crane {
+	stacks := make(map[int]*Stack, len(c.Stacks))
+	moves := make([]Move, len(c.Moves))
+
+	for k, v := range c.Stacks {
+		stack := *v
+		stacks[k] = &stack
+	}
+
+	copy(moves, c.Moves)
+
+	return &Crane{Stacks: stacks, Moves: moves}
 }
 
 type Mover interface {
