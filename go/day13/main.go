@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
 	"os"
+	"sort"
 )
 
 type Outcome int
@@ -77,6 +78,20 @@ func (l List) Compare(v Value) Outcome {
 	return Int(len(l)).Compare(Int(len(other)))
 }
 
+type SortedPackets []List
+
+func (s SortedPackets) Len() int {
+	return len(s)
+}
+
+func (s SortedPackets) Less(i, j int) bool {
+	return s[i].Compare(s[j]) < 0
+}
+
+func (s SortedPackets) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
 type Part1Solver struct{}
 
 func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
@@ -86,7 +101,6 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
 	pairIndex := 1
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
 
 		if len(line) == 0 {
 			continue
@@ -97,9 +111,7 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
 			continue
 		}
 
-		outcome := parseJSON(left).Compare(parseJSON(line))
-		fmt.Println("index", pairIndex, "outcome", outcome)
-		if outcome < WrongOrder {
+		if outcome := parseJSON(left).Compare(parseJSON(line)); outcome < WrongOrder {
 			sum += pairIndex
 		}
 		pairIndex++
@@ -109,27 +121,50 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
 	return sum, nil
 }
 
+type Part2Solver struct{}
+
+func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (int, error) {
+	first := List{List{Int(2)}}
+	second := List{List{Int(6)}}
+	packets := SortedPackets{first, second}
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if len(line) == 0 {
+			continue
+		}
+
+		packets = append(packets, parseJSON(line))
+	}
+
+	sort.Sort(packets)
+
+	product := 1
+	for i, pck := range packets {
+		if pck.Compare(first) == 0 || pck.Compare(second) == 0 {
+			product *= i + 1
+		}
+	}
+
+	return product, nil
+}
+
 func main() {
 	f := common.Must(os.Open("../data/day13"))
 	defer f.Close()
 
 	part1 := Part1Solver{}
-	solution, err := part1.Solve(bufio.NewScanner(f))
-	if err != nil {
-		panic(err)
-	}
+	solution := common.Must(part1.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 1", solution)
 
-	//common.Must(f.Seek(0, 0))
-	//
-	//part2 := PartXSolver{}
-	//solution, err = part2.Solve(bufio.NewScanner(f))
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//fmt.Println("solution for part 2", solution)
+	common.Must(f.Seek(0, 0))
+
+	part2 := Part2Solver{}
+	solution = common.Must(part2.Solve(bufio.NewScanner(f)))
+
+	fmt.Println("solution for part 2", solution)
 }
 
 func parseJSON(line string) List {
