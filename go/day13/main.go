@@ -2,10 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
 	"os"
-	"strconv"
 )
 
 type Outcome int
@@ -97,7 +97,7 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
 			continue
 		}
 
-		outcome := Parse(left).Compare(Parse(line))
+		outcome := parseJSON(left).Compare(parseJSON(line))
 		fmt.Println("index", pairIndex, "outcome", outcome)
 		if outcome < WrongOrder {
 			sum += pairIndex
@@ -132,71 +132,31 @@ func main() {
 	//fmt.Println("solution for part 2", solution)
 }
 
-func Parse(line string) List {
-	if len(line) == 0 || line == "[]" {
-		return nil
+func parseJSON(line string) List {
+	var parsed []any
+
+	if err := json.Unmarshal([]byte(line), &parsed); err != nil {
+		panic(err)
 	}
 
-	return parse(line[1:len(line)-1], nil)
+	return traverse(parsed, nil)
 }
 
-func parse(line string, acc List) List {
-	if len(line) == 0 {
+func traverse(xs []any, acc List) List {
+	if len(xs) == 0 {
 		return acc
 	}
 
-	if line == "[]" {
-		return List{}
-	}
-
-	if line[0] == ',' {
-		line = line[1:]
-	}
-
-	if line[0] == '[' {
-		index := findMatchingBracket(line)
-		newAcc := append(acc, parse(line[1:index], nil))
-
-		if len(line) > index+1 {
-			for _, r := range parse(line[index+1:], nil) {
-				newAcc = append(newAcc, r)
-			}
+	for _, x := range xs {
+		switch e := x.(type) {
+		case float64:
+			acc = append(acc, Int(e))
+		case []any:
+			acc = append(acc, traverse(e, nil))
+		default:
+			panic("unexpected type")
 		}
-
-		return newAcc
-	}
-
-	var v []rune
-	for len(line) > 0 && line[0] >= '0' && line[0] <= '9' {
-		v = append(v, rune(line[0]))
-		line = line[1:]
-	}
-	acc = append(acc, Int(common.Must(strconv.Atoi(string(v)))))
-
-	if len(line) > 0 {
-		return parse(line[1:], acc)
 	}
 
 	return acc
-}
-
-func findMatchingBracket(line string) int {
-	var index, open int
-
-	for len(line) > 0 {
-		switch line[0] {
-		case '[':
-			open++
-		case ']':
-			open--
-			if open == 0 {
-				return index
-			}
-		}
-
-		line = line[1:]
-		index++
-	}
-
-	return -1
 }
