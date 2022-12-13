@@ -24,20 +24,14 @@ func main() {
 	defer f.Close()
 
 	part1 := PartXSolver{}
-	solution, err := part1.Solve(bufio.NewScanner(f))
-	if err != nil {
-		panic(err)
-	}
+	solution := common.Must(part1.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 1", solution)
 
 	common.Must(f.Seek(0, 0))
 
 	part2 := PartXSolver{}
-	solution, err = part2.Solve(bufio.NewScanner(f))
-	if err != nil {
-		panic(err)
-	}
+	solution = common.Must(part2.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 2", solution)
 }
