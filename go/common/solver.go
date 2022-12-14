@@ -1,5 +1,7 @@
 package common
 
+import "bufio"
+
 type Solver interface {
-	Solve(filename string) (int, error)
+	Solve(*bufio.Scanner) (int, error)
 }
