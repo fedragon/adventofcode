@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/fedragon/adventofcode/common"
 	"os"
 )
 
@@ -29,16 +30,11 @@ func (c Container) Intersect(other Container) Container {
 }
 
 func main() {
-	f, err := os.Open("../data/day03")
-	if err != nil {
-		panic(err)
-	}
+	f := common.Must(os.Open("../data/day03"))
 	defer f.Close()
 
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-
 	var lines []string
+	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}

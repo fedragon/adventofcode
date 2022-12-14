@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	. "github.com/fedragon/adventofcode/day05/types"
 )
 
 func main() {

@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/fedragon/adventofcode/common"
 	"os"
 	"strconv"
 	"strings"
@@ -44,17 +45,13 @@ func (r *Range) FullyContains(a *Range) bool {
 }
 
 func main() {
-	f, err := os.Open("../data/day04")
-	if err != nil {
-		panic(err)
-	}
+	f := common.Must(os.Open("../data/day04"))
 	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
 
 	var fullyContained int
 	var overlapping int
+
+	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
 		pairs := strings.Split(line, ",")
