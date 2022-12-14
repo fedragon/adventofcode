@@ -1,5 +1,5 @@
 package common
 
-type Coord struct {
+type Point struct {
 	X, Y int
 }

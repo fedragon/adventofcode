@@ -10,7 +10,7 @@ import (
 )
 
 type Node struct {
-	Coord common.Coord
+	Coord common.Point
 	Steps int
 }
 
@@ -18,7 +18,7 @@ type Part1Solver struct{}
 
 func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
 	var heightmap [][]rune
-	var start, end common.Coord
+	var start, end common.Point
 
 	var rowIndex int
 	for scanner.Scan() {
@@ -33,10 +33,10 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
 		for colIndex, value := range line {
 			v := value
 			if value == 'S' {
-				start = common.Coord{X: colIndex, Y: rowIndex}
+				start = common.Point{X: colIndex, Y: rowIndex}
 				v = 'a'
 			} else if value == 'E' {
-				end = common.Coord{X: colIndex, Y: rowIndex}
+				end = common.Point{X: colIndex, Y: rowIndex}
 				v = 'z'
 			}
 
@@ -57,8 +57,8 @@ type Part2Solver struct{}
 
 func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (int, error) {
 	var heightmap [][]rune
-	var end common.Coord
-	var starts []common.Coord
+	var end common.Point
+	var starts []common.Point
 
 	var rowIndex int
 	for scanner.Scan() {
@@ -73,10 +73,10 @@ func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (int, error) {
 		for colIndex, value := range line {
 			v := value
 			if value == 'S' || value == 'a' {
-				starts = append(starts, common.Coord{X: colIndex, Y: rowIndex})
+				starts = append(starts, common.Point{X: colIndex, Y: rowIndex})
 				v = 'a'
 			} else if value == 'E' {
-				end = common.Coord{X: colIndex, Y: rowIndex}
+				end = common.Point{X: colIndex, Y: rowIndex}
 				v = 'z'
 			}
 
@@ -102,7 +102,7 @@ func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (int, error) {
 	return min, nil
 }
 
-func alreadyQueued(xs []Node, c common.Coord) bool {
+func alreadyQueued(xs []Node, c common.Point) bool {
 	for _, x := range xs {
 		if x.Coord == c {
 			return true
@@ -112,7 +112,7 @@ func alreadyQueued(xs []Node, c common.Coord) bool {
 	return false
 }
 
-func inGrid(c common.Coord, maxRow, maxCol int) bool {
+func inGrid(c common.Point, maxRow, maxCol int) bool {
 	return c.Y > -1 && c.Y < maxRow &&
 		c.X > -1 && c.X < maxCol
 }
@@ -121,9 +121,9 @@ func reachable(current, next rune) bool {
 	return next-current <= 1
 }
 
-func visit(heightmap [][]rune, start Node, end common.Coord) (int, bool) {
+func visit(heightmap [][]rune, start Node, end common.Point) (int, bool) {
 	q := []Node{start}
-	visited := make(map[common.Coord]bool)
+	visited := make(map[common.Point]bool)
 	visited[start.Coord] = true
 
 	for len(q) > 0 {
@@ -137,7 +137,7 @@ func visit(heightmap [][]rune, start Node, end common.Coord) (int, bool) {
 		}
 
 		value := heightmap[coord.Y][coord.X]
-		neighbours := []common.Coord{
+		neighbours := []common.Point{
 			{coord.X - 1, coord.Y},
 			{coord.X + 1, coord.Y},
 			{coord.X, coord.Y - 1},
