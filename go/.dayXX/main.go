@@ -3,34 +3,23 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/fedragon/adventofcode/.dayXX/dayXX"
 	"github.com/fedragon/adventofcode/common"
 	"os"
 )
-
-type PartXSolver struct{}
-
-func (ds *PartXSolver) Solve(scanner *bufio.Scanner) (int, error) {
-	for scanner.Scan() {
-		line := scanner.Text()
-		fmt.Println(line)
-	}
-
-	// TODO
-	return 0, nil
-}
 
 func main() {
 	f := common.Must(os.Open("../data/dayXX"))
 	defer f.Close()
 
-	part1 := PartXSolver{}
+	part1 := dayXX.PartXSolver{}
 	solution := common.Must(part1.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 1", solution)
 
 	common.Must(f.Seek(0, 0))
 
-	part2 := PartXSolver{}
+	part2 := dayXX.PartXSolver{}
 	solution = common.Must(part2.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 2", solution)

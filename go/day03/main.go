@@ -4,96 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
+	"github.com/fedragon/adventofcode/day03/day03"
 	"os"
 )
-
-type Container map[rune]struct{}
-
-func NewContainer(items string) Container {
-	c := make(Container)
-	for _, i := range items {
-		c[i] = struct{}{}
-	}
-
-	return c
-}
-
-func (c Container) Intersect(other Container) Container {
-	result := make(Container)
-	for k := range c {
-		if _, ok := other[k]; ok {
-			result[k] = struct{}{}
-		}
-	}
-
-	return result
-}
 
 func main() {
 	f := common.Must(os.Open("../data/day03"))
 	defer f.Close()
 
-	var lines []string
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
+	part1 := day03.Part1Solver{}
+	solution := common.Must(part1.Solve(bufio.NewScanner(f)))
 
-	fmt.Println(sumOverlapping(lines))
+	fmt.Println("solution for part 1", solution)
 
-	fmt.Println(sumBadges(lines))
-}
+	common.Must(f.Seek(0, 0))
 
-func sumOverlapping(lines []string) int {
-	var sum int
-	for _, line := range lines {
-		half := len(line) / 2
-		first, second := NewContainer(line[:half]), NewContainer(line[half:])
-		for item := range first.Intersect(second) {
-			sum += priority(item)
-		}
-	}
-	return sum
-}
+	part2 := day03.Part2Solver{}
+	solution = common.Must(part2.Solve(bufio.NewScanner(f)))
 
-func sumBadges(lines []string) int {
-	var sum int
-	var group []Container
-	for i, line := range lines {
-		if i > 0 && i%3 == 0 {
-			sum += badgeOf(group)
-			group = []Container{}
-		}
-
-		group = append(group, NewContainer(line))
-	}
-	sum += badgeOf(group)
-
-	return sum
-}
-
-func badgeOf(group []Container) int {
-	var a Container
-	for _, c := range group {
-		if len(a) == 0 {
-			a = c
-		} else {
-			a = a.Intersect(c)
-		}
-	}
-
-	var sum int
-	for k := range a {
-		sum += priority(k)
-	}
-
-	return sum
-}
-
-func priority(r rune) int {
-	if r >= 97 {
-		return 1 + int(r) - 97
-	}
-
-	return 27 + int(r) - 65
+	fmt.Println("solution for part 2", solution)
 }

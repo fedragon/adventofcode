@@ -4,75 +4,23 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
+	"github.com/fedragon/adventofcode/day04/day04"
 	"os"
-	"strconv"
-	"strings"
 )
-
-type Range struct {
-	Start, End int
-}
-
-func Parse(pair string) (*Range, error) {
-	tokens := strings.Split(pair, "-")
-	if len(tokens) != 2 {
-		return nil, fmt.Errorf("expected an assignment pair, but got %v", tokens)
-	}
-	start, err := strconv.Atoi(tokens[0])
-	if err != nil {
-		return nil, err
-	}
-	end, err := strconv.Atoi(tokens[1])
-	if err != nil {
-		return nil, err
-	}
-
-	return &Range{Start: start, End: end}, nil
-}
-
-func (r *Range) Overlaps(a *Range) bool {
-	if r.End < a.Start {
-		return false
-	} else if a.End < r.Start {
-		return false
-	}
-
-	return true
-}
-
-func (r *Range) FullyContains(a *Range) bool {
-	return r.Start <= a.Start && r.End >= a.End
-}
 
 func main() {
 	f := common.Must(os.Open("../data/day04"))
 	defer f.Close()
 
-	var fullyContained int
-	var overlapping int
+	part1 := day04.Part1Solver{}
+	solution := common.Must(part1.Solve(bufio.NewScanner(f)))
 
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		pairs := strings.Split(line, ",")
-		left, err := Parse(pairs[0])
-		if err != nil {
-			panic(err)
-		}
-		right, err := Parse(pairs[1])
-		if err != nil {
-			panic(err)
-		}
+	fmt.Println("solution for part 1", solution)
 
-		if left.FullyContains(right) || right.FullyContains(left) {
-			fullyContained++
-		}
+	common.Must(f.Seek(0, 0))
 
-		if left.Overlaps(right) {
-			overlapping++
-		}
-	}
+	part2 := day04.Part2Solver{}
+	solution = common.Must(part2.Solve(bufio.NewScanner(f)))
 
-	fmt.Println("fully contained ranges", fullyContained)
-	fmt.Println("overlapping ranges", overlapping)
+	fmt.Println("solution for part 2", solution)
 }
