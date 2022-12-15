@@ -59,7 +59,7 @@ func minmax(min, max, next int) (int, int) {
 	return min, max
 }
 
-func buildGrid(lines []string) *Grid {
+func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 	tiles := map[common.Point]rune{}
 	minY, maxY := 0, 0
 	minX, maxX := 0, 0
@@ -92,28 +92,30 @@ func buildGrid(lines []string) *Grid {
 
 		distance := sensor.ManhattanDistance(beacon)
 
-		vertical := distance * -1
-		horizontal := 0
+		//fmt.Println("sensor", sensor, "distance", distance)
 
-		for {
-			if vertical > distance {
-				break
-			}
+		if sensor.Y <= ds.TargetY && sensor.Y+distance >= ds.TargetY {
+			width := sensor.Y + distance - ds.TargetY
 
-			for x := horizontal * -1; x <= horizontal; x++ {
-				p := common.Point{X: sensor.X + x, Y: sensor.Y + vertical}
+			for x := width * -1; x <= width; x++ {
+				p := common.Point{X: sensor.X + x, Y: ds.TargetY}
 				if _, ok := tiles[p]; !ok {
 					tiles[p] = NoSensor
 					minX, maxX = minmax(minX, maxX, p.X)
 					minY, maxY = minmax(minY, maxY, p.Y)
 				}
 			}
+		} else if sensor.Y >= ds.TargetY && sensor.Y-distance <= ds.TargetY {
+			width := ds.TargetY - (sensor.Y - distance)
+			//fmt.Println("sensor", sensor, "distance", distance, "width", width)
 
-			vertical++
-			if vertical+sensor.Y > sensor.Y {
-				horizontal--
-			} else {
-				horizontal++
+			for x := width * -1; x <= width; x++ {
+				p := common.Point{X: sensor.X + x, Y: ds.TargetY}
+				if _, ok := tiles[p]; !ok {
+					tiles[p] = NoSensor
+					minX, maxX = minmax(minX, maxX, p.X)
+					minY, maxY = minmax(minY, maxY, p.Y)
+				}
 			}
 		}
 	}
@@ -133,7 +135,7 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 		lines = append(lines, scanner.Text())
 	}
 
-	grid := buildGrid(lines)
+	grid := ds.buildGrid(lines)
 	//fmt.Println(grid.String())
 
 	var count int
