@@ -8,6 +8,7 @@ import (
 	"github.com/fedragon/adventofcode/day02/day02"
 	"github.com/fedragon/adventofcode/day03/day03"
 	"github.com/fedragon/adventofcode/day04/day04"
+	"github.com/fedragon/adventofcode/day15/day15"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -76,5 +77,19 @@ func TestDay04(t *testing.T) {
 	solution, err = run(day, &day04.Part2Solver{})
 	if assert.NoError(t, err) {
 		assert.Equal(t, 938, solution.IntValue)
+	}
+}
+
+func TestDay15(t *testing.T) {
+	day := 15
+
+	solution, err := run(day, &day15.Part1Solver{})
+	if assert.NoError(t, err) {
+		assert.Equal(t, 657, solution.IntValue) // TODO
+	}
+
+	solution, err = run(day, &day15.Part2Solver{})
+	if assert.NoError(t, err) {
+		assert.Equal(t, 938, solution.IntValue) // TODO
 	}
 }

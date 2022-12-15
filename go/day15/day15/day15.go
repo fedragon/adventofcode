@@ -26,13 +26,21 @@ type Grid struct {
 
 func (g *Grid) String() string {
 	var b strings.Builder
+
+	b.WriteString("    ")
+	for c := g.MinX; c <= g.MaxX; c++ {
+		b.WriteString(fmt.Sprintf("%3d ", c))
+	}
+	b.WriteRune('\n')
+
 	for r := g.MinY; r <= g.MaxY; r++ {
+		b.WriteString(fmt.Sprintf("%3d ", r))
 		for c := g.MinX; c <= g.MaxX; c++ {
 			r, ok := g.Tiles[common.Point{X: c, Y: r}]
 			if ok {
-				b.WriteRune(r)
+				b.WriteString(fmt.Sprintf("  %c ", r))
 			} else {
-				b.WriteRune('.')
+				b.WriteString("  . ")
 			}
 		}
 		b.WriteRune('\n')
@@ -64,8 +72,6 @@ func buildGrid(lines []string) *Grid {
 		}
 
 		matches := re.FindAllStringSubmatch(line, -1)
-		fmt.Println(matches)
-
 		sensor := common.Point{
 			X: common.Must(strconv.Atoi(matches[0][1])),
 			Y: common.Must(strconv.Atoi(matches[0][2])),
@@ -90,26 +96,33 @@ func buildGrid(lines []string) *Grid {
 
 type Part1Solver struct{}
 
-func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (int, error) {
+func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	var lines []string
 	for scanner.Scan() {
 		lines = append(lines, scanner.Text())
 	}
 
 	grid := buildGrid(lines)
+	fmt.Printf("min(y,x) = (%d, %d), max(y,x) = (%d, %d)\n", grid.MinY, grid.MinX, grid.MaxY, grid.MaxX)
 	fmt.Println(grid.String())
 
-	return 0, nil
+	return solveForRow(grid, 10)
+}
+
+func solveForRow(grid *Grid, row int) (common.Solution, error) {
+	// there cannot be any beacon in the area determined by the distance to its sensor
+
+	return common.Solution{}, nil
 }
 
 type Part2Solver struct{}
 
-func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (int, error) {
+func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		fmt.Println(line)
 	}
 
 	// TODO
-	return 0, nil
+	return common.Solution{}, nil
 }

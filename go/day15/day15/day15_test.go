@@ -2,6 +2,7 @@ package day15
 
 import (
 	"bufio"
+	"github.com/fedragon/adventofcode/common"
 	"strings"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestPart1Solver_Solve(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    int
+		want    common.Solution
 		wantErr bool
 	}{
 		{
@@ -35,7 +36,7 @@ Sensor at x=16, y=7: closest beacon is at x=15, y=3
 Sensor at x=14, y=3: closest beacon is at x=15, y=3
 Sensor at x=20, y=1: closest beacon is at x=15, y=3`)),
 			},
-			0,
+			common.Solution{IntValue: 24},
 			false,
 		},
 	}
