@@ -12,7 +12,9 @@ func main() {
 	f := common.Must(os.Open("../data/day15"))
 	defer f.Close()
 
-	part1 := day15.Part1Solver{}
+	part1 := day15.Part1Solver{
+		TargetY: 2000000,
+	}
 	solution := common.Must(part1.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 1", solution)

@@ -36,13 +36,13 @@ Sensor at x=16, y=7: closest beacon is at x=15, y=3
 Sensor at x=14, y=3: closest beacon is at x=15, y=3
 Sensor at x=20, y=1: closest beacon is at x=15, y=3`)),
 			},
-			common.Solution{IntValue: 24},
+			common.Solution{IntValue: 26},
 			false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ds := &Part1Solver{}
+			ds := &Part1Solver{TargetY: 10}
 			got, err := ds.Solve(tt.args.scanner)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Solve() error = %v, wantErr %v", err, tt.wantErr)

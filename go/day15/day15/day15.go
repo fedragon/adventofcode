@@ -15,9 +15,6 @@ const (
 	NoSensor = '#'
 )
 
-// Grid
-//
-//	TODO this is VERY similar to the grid in day14, can I create a more generic one and reuse it?
 type Grid struct {
 	Tiles      map[common.Point]rune
 	MinX, MaxX int
@@ -27,6 +24,7 @@ type Grid struct {
 func (g *Grid) String() string {
 	var b strings.Builder
 
+	b.WriteString(fmt.Sprintf("min(y,x) = (%d, %d), max(y,x) = (%d, %d)\n", g.MinY, g.MinX, g.MaxY, g.MaxX))
 	b.WriteString("    ")
 	for c := g.MinX; c <= g.MaxX; c++ {
 		b.WriteString(fmt.Sprintf("%3d ", c))
@@ -49,12 +47,12 @@ func (g *Grid) String() string {
 	return b.String()
 }
 
-var re = regexp.MustCompile(`x=(-?\d+), y=(-?\d+)`)
-
 func minmax(min, max, next int) (int, int) {
 	if next < min {
 		min = next
-	} else if next > max {
+	}
+
+	if next > max {
 		max = next
 	}
 
@@ -65,6 +63,8 @@ func buildGrid(lines []string) *Grid {
 	tiles := map[common.Point]rune{}
 	minY, maxY := 0, 0
 	minX, maxX := 0, 0
+
+	var re = regexp.MustCompile(`x=(-?\d+), y=(-?\d+)`)
 
 	for _, line := range lines {
 		if len(line) == 0 {
@@ -89,12 +89,43 @@ func buildGrid(lines []string) *Grid {
 
 		minX, maxX = minmax(minX, maxX, beacon.X)
 		minY, maxY = minmax(minY, maxY, beacon.Y)
+
+		distance := sensor.ManhattanDistance(beacon)
+
+		vertical := distance * -1
+		horizontal := 0
+
+		for {
+			if vertical > distance {
+				break
+			}
+
+			for x := horizontal * -1; x <= horizontal; x++ {
+				p := common.Point{X: sensor.X + x, Y: sensor.Y + vertical}
+				if _, ok := tiles[p]; !ok {
+					tiles[p] = NoSensor
+					minX, maxX = minmax(minX, maxX, p.X)
+					minY, maxY = minmax(minY, maxY, p.Y)
+				}
+			}
+
+			vertical++
+			if vertical+sensor.Y > sensor.Y {
+				horizontal--
+			} else {
+				horizontal++
+			}
+		}
 	}
+
+	fmt.Printf("min(y,x) = (%d, %d), max(y,x) = (%d, %d)\n", minY, minX, maxY, maxX)
 
 	return &Grid{Tiles: tiles, MinX: minX, MaxX: maxX, MinY: minY, MaxY: maxY}
 }
 
-type Part1Solver struct{}
+type Part1Solver struct {
+	TargetY int
+}
 
 func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	var lines []string
@@ -103,16 +134,16 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	}
 
 	grid := buildGrid(lines)
-	fmt.Printf("min(y,x) = (%d, %d), max(y,x) = (%d, %d)\n", grid.MinY, grid.MinX, grid.MaxY, grid.MaxX)
-	fmt.Println(grid.String())
+	//fmt.Println(grid.String())
 
-	return solveForRow(grid, 10)
-}
+	var count int
+	for x := grid.MinX; x <= grid.MaxX; x++ {
+		if grid.Tiles[common.Point{X: x, Y: ds.TargetY}] == NoSensor {
+			count++
+		}
+	}
 
-func solveForRow(grid *Grid, row int) (common.Solution, error) {
-	// there cannot be any beacon in the area determined by the distance to its sensor
-
-	return common.Solution{}, nil
+	return common.Solution{IntValue: count}, nil
 }
 
 type Part2Solver struct{}
