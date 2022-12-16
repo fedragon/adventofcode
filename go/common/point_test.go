@@ -36,7 +36,7 @@ func TestPoint_ManhattanDistance(t *testing.T) {
 				X: tt.fields.X,
 				Y: tt.fields.Y,
 			}
-			if got := p.ManhattanDistance(tt.args.t); got != tt.want {
+			if got := p.ManhattanDistance(&tt.args.t); got != tt.want {
 				t.Errorf("ManhattanDistance() = %v, want %v", got, tt.want)
 			}
 		})

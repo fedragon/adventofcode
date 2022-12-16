@@ -15,25 +15,26 @@ const (
 	NoSensor = '#'
 )
 
+var re = regexp.MustCompile(`x=(-?\d+), y=(-?\d+)`)
+
 type Grid struct {
-	Tiles      map[common.Point]rune
-	MinX, MaxX int
-	MinY, MaxY int
+	Min, Max *common.Point
+	Tiles    map[common.Point]rune
 }
 
 func (g *Grid) String() string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("min(y,x) = (%d, %d), max(y,x) = (%d, %d)\n", g.MinY, g.MinX, g.MaxY, g.MaxX))
+	b.WriteString(fmt.Sprintf("min(x,y) = (%d, %d), max(x,y) = (%d, %d)\n", g.Min.X, g.Min.Y, g.Max.X, g.Max.Y))
 	b.WriteString("    ")
-	for c := g.MinX; c <= g.MaxX; c++ {
+	for c := g.Min.X; c <= g.Max.X; c++ {
 		b.WriteString(fmt.Sprintf("%3d ", c))
 	}
 	b.WriteRune('\n')
 
-	for r := g.MinY; r <= g.MaxY; r++ {
+	for r := g.Min.Y; r <= g.Max.Y; r++ {
 		b.WriteString(fmt.Sprintf("%3d ", r))
-		for c := g.MinX; c <= g.MaxX; c++ {
+		for c := g.Min.X; c <= g.Max.X; c++ {
 			r, ok := g.Tiles[common.Point{X: c, Y: r}]
 			if ok {
 				b.WriteString(fmt.Sprintf("  %c ", r))
@@ -64,8 +65,6 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 	minY, maxY := 0, 0
 	minX, maxX := 0, 0
 
-	var re = regexp.MustCompile(`x=(-?\d+), y=(-?\d+)`)
-
 	for _, line := range lines {
 		if len(line) == 0 {
 			continue
@@ -90,7 +89,7 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 		minX, maxX = minmax(minX, maxX, beacon.X)
 		minY, maxY = minmax(minY, maxY, beacon.Y)
 
-		distance := sensor.ManhattanDistance(beacon)
+		distance := sensor.ManhattanDistance(&beacon)
 
 		//fmt.Println("sensor", sensor, "distance", distance)
 
@@ -120,9 +119,9 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 		}
 	}
 
-	fmt.Printf("min(y,x) = (%d, %d), max(y,x) = (%d, %d)\n", minY, minX, maxY, maxX)
+	fmt.Printf("min(x,y) = (%d, %d), max(x,y) = (%d, %d)\n", minX, minY, maxX, maxY)
 
-	return &Grid{Tiles: tiles, MinX: minX, MaxX: maxX, MinY: minY, MaxY: maxY}
+	return &Grid{Tiles: tiles, Min: &common.Point{X: minX, Y: minY}, Max: &common.Point{X: maxX, Y: maxY}}
 }
 
 type Part1Solver struct {
@@ -136,10 +135,9 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	}
 
 	grid := ds.buildGrid(lines)
-	//fmt.Println(grid.String())
 
 	var count int
-	for x := grid.MinX; x <= grid.MaxX; x++ {
+	for x := grid.Min.X; x <= grid.Max.X; x++ {
 		if grid.Tiles[common.Point{X: x, Y: ds.TargetY}] == NoSensor {
 			count++
 		}
@@ -148,7 +146,9 @@ func (ds *Part1Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	return common.Solution{IntValue: count}, nil
 }
 
-type Part2Solver struct{}
+type Part2Solver struct {
+	Min, Max *common.Point
+}
 
 func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 	for scanner.Scan() {
