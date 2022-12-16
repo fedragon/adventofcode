@@ -2,6 +2,7 @@ package day15
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
 	"regexp"
@@ -91,8 +92,6 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 
 		distance := sensor.ManhattanDistance(&beacon)
 
-		//fmt.Println("sensor", sensor, "distance", distance)
-
 		if sensor.Y <= ds.TargetY && sensor.Y+distance >= ds.TargetY {
 			width := sensor.Y + distance - ds.TargetY
 
@@ -106,7 +105,6 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 			}
 		} else if sensor.Y >= ds.TargetY && sensor.Y-distance <= ds.TargetY {
 			width := ds.TargetY - (sensor.Y - distance)
-			//fmt.Println("sensor", sensor, "distance", distance, "width", width)
 
 			for x := width * -1; x <= width; x++ {
 				p := common.Point{X: sensor.X + x, Y: ds.TargetY}
@@ -151,11 +149,62 @@ type Part2Solver struct {
 }
 
 func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
+	var areas []Area
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		fmt.Println(line)
+
+		if len(line) == 0 {
+			continue
+		}
+
+		matches := re.FindAllStringSubmatch(line, -1)
+		sensor := common.Point{
+			X: common.Must(strconv.Atoi(matches[0][1])),
+			Y: common.Must(strconv.Atoi(matches[0][2])),
+		}
+
+		beacon := common.Point{
+			X: common.Must(strconv.Atoi(matches[1][1])),
+			Y: common.Must(strconv.Atoi(matches[1][2])),
+		}
+
+		areas = append(areas, Area{Sensor: sensor, Distance: sensor.ManhattanDistance(&beacon)})
 	}
 
-	// TODO
-	return common.Solution{}, nil
+	start := common.Point{X: -1, Y: -1}
+	beacon := start
+
+loop:
+	for x := ds.Min.X; x <= ds.Max.X; x++ {
+		for y := ds.Min.Y; y <= ds.Max.Y; y++ {
+			p := common.Point{X: x, Y: y}
+
+			none := false
+			for _, a := range areas {
+				none = a.Contains(&p) || none
+			}
+
+			if !none {
+				beacon = p
+				break loop
+			}
+		}
+	}
+
+	if beacon != start {
+		tuningFrequency := beacon.X*4000000 + beacon.Y
+		return common.Solution{IntValue: tuningFrequency}, nil
+	}
+
+	return common.Solution{}, errors.New("beacon not found")
+}
+
+type Area struct {
+	Sensor   common.Point
+	Distance int
+}
+
+func (s *Area) Contains(p *common.Point) bool {
+	return s.Sensor.ManhattanDistance(p) <= s.Distance
 }

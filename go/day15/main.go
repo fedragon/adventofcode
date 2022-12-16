@@ -21,7 +21,10 @@ func main() {
 
 	common.Must(f.Seek(0, 0))
 
-	part2 := day15.Part2Solver{}
+	part2 := day15.Part2Solver{
+		Min: &common.Point{X: 0, Y: 0},
+		Max: &common.Point{X: 4000000, Y: 4000000},
+	}
 	solution = common.Must(part2.Solve(bufio.NewScanner(f)))
 
 	fmt.Println("solution for part 2", solution)
