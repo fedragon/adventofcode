@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"math"
 )
 
@@ -21,4 +22,8 @@ func (p *Point) Compare(t *Point) int {
 	}
 
 	return 1
+}
+
+func (p *Point) String() string {
+	return fmt.Sprintf("(%d,%d)", p.X, p.Y)
 }

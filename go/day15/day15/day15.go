@@ -2,10 +2,10 @@ package day15
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -172,32 +172,64 @@ func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 		areas = append(areas, Area{Sensor: sensor, Distance: sensor.ManhattanDistance(&beacon)})
 	}
 
-	start := common.Point{X: -1, Y: -1}
-	beacon := start
+	maxWorkers := runtime.GOMAXPROCS(-1)
+	jobs := make(chan minMax, maxWorkers)
+	result := make(chan common.Point, 1)
 
-loop:
-	for x := ds.Min.X; x <= ds.Max.X; x++ {
-		for y := ds.Min.Y; y <= ds.Max.Y; y++ {
-			p := common.Point{X: x, Y: y}
+	for i := 0; i < maxWorkers; i++ {
+		go findBeacon(i, areas, jobs, result)
+	}
 
-			none := false
-			for _, a := range areas {
-				none = a.Contains(&p) || none
-			}
+	const step = 2000
+	i, j := 0, common.Min(ds.Max.X, step)
+	var start, end common.Point
+	for {
+		start = common.Point{X: i, Y: i}
+		end = common.Point{X: j, Y: j}
 
-			if !none {
-				beacon = p
-				break loop
+		if end.Compare(ds.Max) == 1 {
+			break
+		}
+
+		jobs <- minMax{Min: start, Max: end}
+
+		i += step
+		j += step
+	}
+	close(jobs)
+
+	beacon := <-result
+
+	tuningFrequency := beacon.X*4000000 + beacon.Y
+	return common.Solution{IntValue: tuningFrequency}, nil
+}
+
+type minMax struct {
+	Min, Max common.Point
+}
+
+func findBeacon(id int, areas []Area, jobs <-chan minMax, result chan<- common.Point) {
+	for job := range jobs {
+		fmt.Printf("[%v] now checking %v -> %v\n", id, job.Min, job.Max)
+		for x := job.Min.X; x <= job.Max.X; x++ {
+			for y := job.Min.Y; y <= job.Max.Y; y++ {
+				p := common.Point{X: x, Y: y}
+
+				none := false
+				for _, a := range areas {
+					none = a.Contains(&p) || none
+				}
+
+				if !none {
+					fmt.Printf("[%v] FOUND beacon at: %v\n", id, p)
+					result <- p
+					return
+				}
 			}
 		}
-	}
 
-	if beacon != start {
-		tuningFrequency := beacon.X*4000000 + beacon.Y
-		return common.Solution{IntValue: tuningFrequency}, nil
+		//fmt.Printf("[%v] found no beacon for: %v\n", id, job)
 	}
-
-	return common.Solution{}, errors.New("beacon not found")
 }
 
 type Area struct {
