@@ -2,17 +2,17 @@ package day15
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"github.com/fedragon/adventofcode/common"
 	"regexp"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 )
 
 const (
-	Beacon   = 'B'
-	Sensor   = 'S'
 	NoSensor = '#'
 )
 
@@ -49,6 +49,11 @@ func (g *Grid) String() string {
 	return b.String()
 }
 
+type sensorArea struct {
+	Sensor   common.Point
+	Distance int
+}
+
 func minmax(min, max, next int) (int, int) {
 	if next < min {
 		min = next
@@ -76,7 +81,7 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 			X: common.Must(strconv.Atoi(matches[0][1])),
 			Y: common.Must(strconv.Atoi(matches[0][2])),
 		}
-		tiles[sensor] = Sensor
+		tiles[sensor] = 'S'
 
 		minX, maxX = minmax(minX, maxX, sensor.X)
 		minY, maxY = minmax(minY, maxY, sensor.Y)
@@ -85,7 +90,7 @@ func (ds *Part1Solver) buildGrid(lines []string) *Grid {
 			X: common.Must(strconv.Atoi(matches[1][1])),
 			Y: common.Must(strconv.Atoi(matches[1][2])),
 		}
-		tiles[beacon] = Beacon
+		tiles[beacon] = 'B'
 
 		minX, maxX = minmax(minX, maxX, beacon.X)
 		minY, maxY = minmax(minY, maxY, beacon.Y)
@@ -149,7 +154,7 @@ type Part2Solver struct {
 }
 
 func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
-	var areas []Area
+	var areas []sensorArea
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -169,74 +174,72 @@ func (ds *Part2Solver) Solve(scanner *bufio.Scanner) (common.Solution, error) {
 			Y: common.Must(strconv.Atoi(matches[1][2])),
 		}
 
-		areas = append(areas, Area{Sensor: sensor, Distance: sensor.ManhattanDistance(&beacon)})
+		areas = append(areas, sensorArea{Sensor: sensor, Distance: sensor.ManhattanDistance(&beacon)})
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	maxWorkers := runtime.GOMAXPROCS(-1)
-	jobs := make(chan minMax, maxWorkers)
+	rows := make(chan int, maxWorkers)
 	result := make(chan common.Point, 1)
 
 	for i := 0; i < maxWorkers; i++ {
-		go findBeacon(i, areas, jobs, result)
+		go findBeacon(ctx, i, areas, rows, result)
 	}
 
-	const step = 2000
-	i, j := 0, common.Min(ds.Max.X, step)
-	var start, end common.Point
-	for {
-		start = common.Point{X: i, Y: i}
-		end = common.Point{X: j, Y: j}
-
-		if end.Compare(ds.Max) == 1 {
-			break
+	go func(jobs chan<- int) {
+		for y := ds.Min.Y; y <= ds.Max.Y; y++ {
+			jobs <- y
 		}
-
-		jobs <- minMax{Min: start, Max: end}
-
-		i += step
-		j += step
-	}
-	close(jobs)
+		close(jobs)
+	}(rows)
 
 	beacon := <-result
+	cancel()
 
 	tuningFrequency := beacon.X*4000000 + beacon.Y
 	return common.Solution{IntValue: tuningFrequency}, nil
 }
 
-type minMax struct {
-	Min, Max common.Point
-}
-
-func findBeacon(id int, areas []Area, jobs <-chan minMax, result chan<- common.Point) {
-	for job := range jobs {
-		fmt.Printf("[%v] now checking %v -> %v\n", id, job.Min, job.Max)
-		for x := job.Min.X; x <= job.Max.X; x++ {
-			for y := job.Min.Y; y <= job.Max.Y; y++ {
-				p := common.Point{X: x, Y: y}
-
-				none := false
-				for _, a := range areas {
-					none = a.Contains(&p) || none
+func findBeacon(ctx context.Context, id int, areas []sensorArea, rows <-chan int, result chan<- common.Point) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case row := <-rows:
+			fmt.Printf("[%v] now checking row %v\n", id, row)
+			var ranges common.Ranges
+			for _, a := range areas {
+				width := a.Distance - common.Abs(a.Sensor.Y-row)
+				if width < 0 {
+					continue
 				}
 
-				if !none {
-					fmt.Printf("[%v] FOUND beacon at: %v\n", id, p)
-					result <- p
-					return
+				ranges = append(ranges, common.Range{Start: a.Sensor.X - width, End: a.Sensor.X + width})
+			}
+
+			var start common.Range
+			var found bool
+			if len(ranges) > 0 {
+				sort.Sort(ranges)
+				start = ranges[0]
+
+				for i := 1; i < len(ranges); i++ {
+					current := ranges[i]
+					res := start.Merge(&current)
+
+					if res == nil {
+						found = true
+						break
+					}
+
+					start = *res
 				}
 			}
+
+			if found {
+				result <- common.Point{X: start.End + 1, Y: row}
+				return
+			}
 		}
-
-		//fmt.Printf("[%v] found no beacon for: %v\n", id, job)
 	}
-}
-
-type Area struct {
-	Sensor   common.Point
-	Distance int
-}
-
-func (s *Area) Contains(p *common.Point) bool {
-	return s.Sensor.ManhattanDistance(p) <= s.Distance
 }

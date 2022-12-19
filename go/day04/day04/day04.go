@@ -8,11 +8,7 @@ import (
 	"strings"
 )
 
-type Range struct {
-	Start, End int
-}
-
-func parse(pair string) (*Range, error) {
+func parse(pair string) (*common.Range, error) {
 	tokens := strings.Split(pair, "-")
 	if len(tokens) != 2 {
 		return nil, fmt.Errorf("expected an assignment pair, but got %v", tokens)
@@ -26,21 +22,7 @@ func parse(pair string) (*Range, error) {
 		return nil, err
 	}
 
-	return &Range{Start: start, End: end}, nil
-}
-
-func (r *Range) Overlaps(a *Range) bool {
-	if r.End < a.Start {
-		return false
-	} else if a.End < r.Start {
-		return false
-	}
-
-	return true
-}
-
-func (r *Range) FullyContains(a *Range) bool {
-	return r.Start <= a.Start && r.End >= a.End
+	return &common.Range{Start: start, End: end}, nil
 }
 
 type Part1Solver struct{}
