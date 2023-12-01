@@ -1,0 +1,17 @@
+[gd_scene load_steps=2 format=3 uid="uid://q3dcdfk8h6rh"]
+
+[ext_resource type="Script" path="res://scripts/day1.gd" id="1_kfsmv"]
+
+[node name="Node2D" type="Node2D"]
+script = ExtResource("1_kfsmv")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+offset_right = 1152.0
+offset_bottom = 651.0
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CenterContainer"]
+layout_mode = 2
+text = "Foobar"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
